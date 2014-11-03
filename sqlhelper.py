@@ -1,6 +1,19 @@
 __author__ = 'eugene'
 
 
+# TODO
+tableList = ['Forum', 'User', 'Thread', 'Post', 'Follow', 'Subscribe']
+
+# TODO
+def hierarchy_sort(sort):
+    if sort is None or sort == 'flat':
+        sort = ''
+    elif sort == 'tree':
+        sort = ', parent ASC'
+    elif sort == 'parent_tree':
+        sort = ', parent ASC'
+
+    return sort
 
 class DBNotFound(Exception):
     def __init__(self, value):
@@ -19,11 +32,31 @@ def isStated(parameter):
     else:
         return parameter
 
+def getIntOrDefault(obj, default):
+    try:
+        obj = int(obj)
+    except Exception as e:
+        obj = default
+    return obj
+
 def getOrDefault(variable, default):
     if variable is None:
         return default
     else:
         return variable
+
+class UtilQueries:
+    @staticmethod
+    def clear(cursor):
+        query = "SET FOREIGN_KEY_CHECKS=0"
+        cursor.execute(query)
+
+        for table in tableList:
+            query = "TRUNCATE TABLE `%s`;" %table
+            cursor.execute(query)
+
+        query = "SET FOREIGN_KEY_CHECKS=1"
+        cursor.execute(query)
 
 
 class UserQueries:
@@ -38,31 +71,36 @@ class UserQueries:
 
     @staticmethod
     def fetchByUsername(cursor, username):
-        query = "SELECT userId, about, isAnonymous, realName, username, email `User` WHERE `User`.username = '%s'" % username
+        query = "SELECT userId, about, isAnonymous, name, username, email `User` WHERE `User`.username = '%s'" % username
         cursor.execute(query)
         user = cursor.fetchone()
         return user
 
+
     @staticmethod
-    def create(cursor, required, optional):
-        query = "INSERT INTO `User` (about, realName, username, email) VALUES ('%s', '%s', '%s', '%s');" % \
-                (required[0], required[1], required[2], required[3])
+    def create(cursor, required):
+        query = "INSERT INTO `User` (about, name, username, email, isAnonymous) VALUES ('%s', '%s', '%s', '%s', %s);"\
+                % (required['about'], required['name'], required['username'], required['email'], required['isAnonymous'])
         cursor.execute(query)
+
 
     @staticmethod
     def updateProfile(cursor, email, about, name):
-        query = "UPDATE User SET about = '%s', realName = '%s' WHERE User.email = '%s'" % (about, name, email)
+        query = "UPDATE User SET about = '%s', name = '%s' WHERE User.email = '%s'" % (about, name, email)
         cursor.execute(query)
+
 
     @staticmethod
     def follow(cursor, followee, follower):
-        query = "INSERT INTO Follow (follower, followee) VALUES (%s, %s);" % (follower, followee)
+        query = "INSERT INTO Follow (follower, followee) VALUES ('%s', '%s');" % (follower, followee)
         cursor.execute(query)
+
 
     @staticmethod
     def unfollow(cursor, followee, follower):
-        query = "DELETE FROM Follow WHERE follower = '%s' AND folowee = '%s';" % (follower, followee)
+        query = "DELETE FROM Follow WHERE follower = '%s' AND followee = '%s';" % (follower, followee)
         cursor.execute(query)
+
 
     @staticmethod
     def getFollowers(cursor, user):
@@ -70,6 +108,7 @@ class UserQueries:
         cursor.execute(query)
         followers = cursor.fetchall()
         return followers
+
 
     @staticmethod
     def getFollowee(cursor, user):
@@ -79,72 +118,69 @@ class UserQueries:
         return followere
 
 
-    # TODO LIMIT!!
     @staticmethod
     def getUsersFollowers(cursor, user, since_id, limit, order):
-        return []
-        limit = getOrDefault(limit, 1000)
-        order = getOrDefault(order, "DESC")
-        since_id = getOrDefault(since_id, 0)
-        query = "SELECT * FROM Follow as F JOIN `User` as U ON F.followee = U.email " \
-                "WHERE follower = '%s' AND U.id > %d ORDER BY realName '%s LIMIT %d" % (user, since_id, order, limit)
+        limit = getIntOrDefault(limit, 1000)
+        order = getOrDefault(order, 'DESC')
+        since_id = getIntOrDefault(since_id, 0)
+        query = "SELECT * FROM Follow as F JOIN `User` as U ON F.follower = U.email " \
+                "WHERE followee = '%s' AND U.id >= %d ORDER BY name %s LIMIT %d" % (user, since_id, order, limit)
         cursor.execute(query)
         followers = cursor.fetchall()
         return followers
 
-    # TODO LIMIT!!
+
     @staticmethod
     def getUsersFollowee(cursor, user, since_id, limit, order):
-        return []
-        limit = getOrDefault(limit, 1000)
-        order = getOrDefault(order, "DESC")
-        since_id = getOrDefault(since_id, 0)
+        # limit = getOrDefault(limit, 1000)
+        limit = getIntOrDefault(limit, 1000)
+        order = getOrDefault(order, 'DESC')
+        since_id = getIntOrDefault(since_id, 0)
         query = "SELECT * FROM Follow as F JOIN `User` as U ON F.followee = U.email " \
-                "WHERE followee = '%s' AND U.id > %d ORDER BY realName '%s LIMIT %d" % (user, since_id, order, limit)
+                "WHERE follower = '%s' AND U.id >= %d ORDER BY name %s LIMIT %d" % (user, since_id, order, limit)
         cursor.execute(query)
         followers = cursor.fetchall()
         return followers
 
 
-    # TODO TROUBLES WITH LIMIT
     @staticmethod
     def fetchForumUsers(cursor, forum, since_id, limit, order):
-        return []
-        since_id = getOrDefault(since_id, 0)
-        limit = getOrDefault(limit, 1000)
-        order = getOrDefault(order, "DESC")
+        since_id = getIntOrDefault(since_id, 0)
+        limit = getIntOrDefault(limit, 1000)
+        order = getOrDefault(order, 'DESC')
 
-        query = "SELECT * FROM `User` WHERE `User`.userID > %d AND EXISTS " \
-                "(SELECT * FROM Post WHERE Post.forum = '%s' AND Post.user = `User`.email) " \
-                "ORDER BY `User`.realName '%s' LIMIT '%s';" % (since_id, forum, order, limit)
+        query = "SELECT * FROM `User` WHERE `User`.id > %d AND EXISTS " \
+                    "(SELECT * FROM Post WHERE Post.forum = '%s' AND Post.user = `User`.email) " \
+                "ORDER BY `User`.name %s LIMIT %d;" % (since_id, forum, order, limit)
+
         cursor.execute(query)
         forumUsers = cursor.fetchall()
-        if forumUsers is None:
-            raise DBNotFound("Users for this forum '%s' not found" % forum)
         return forumUsers
 
-    # TODO SUBSCRIPTIONS
+
     @staticmethod
-    def getSubscriptions(cursor, user):
-        return []
-
-
-
-
+    def getSubscriptions(cursor, email):
+        query = "SELECT thread FROM Subscribe WHERE Subscribe.user = '%s' " % email
+        cursor.execute(query)
+        subscriptions = cursor.fetchall()
+        return subscriptions
 
 class ForumQueries:
     @staticmethod
-    def create(cursor, forumName, shortName, user):
-        query = "INSERT INTO Forum (forumName, shortName, user) VALUES ('%s', '%s', '%s');" % (forumName, shortName, user)
+    def create(cursor, name, short_name, user):
+        query = "INSERT INTO Forum (name, short_name, user) VALUES ('%s', '%s', '%s');" % (name, short_name, user)
         cursor.execute(query)
 
+
     @staticmethod
-    def fetchBySlug(cursor, shortName):
-        query = "SELECT * FROM Forum WHERE Forum.shortName = '%s'" % shortName
+    def fetchBySlug(cursor, short_name):
+        short_name = getOrDefault(short_name, '')
+        query = "SELECT * FROM Forum WHERE Forum.short_name = '%s'" % short_name
         cursor.execute(query)
+
         forum = cursor.fetchone()
         if forum is None:
-            raise DBNotFound("Forum with shortname '%s' not found" % shortName)
+            raise DBNotFound("Forum with short_name '%s' not found" % short_name)
         return forum
 
     @staticmethod
@@ -156,85 +192,92 @@ class ForumQueries:
 
 class PostQueries:
     @staticmethod
-    #     OPTIONAL PARAMS TODO
-    # 0 - date, 1 - threadId 2 - message, 3 - email, 4 - forumID
     def create(cursor, required, optional):
-        query = "INSERT INTO Post (dateCreated, thread, message, user, forum," \
+        query = "INSERT INTO Post (date, thread, message, user, forum," \
                 "isApproved, isHighlighted, isEdited, isSpam, isDeleted, parent" \
                 ") VALUES ('%s', %d, '%s', '%s', '%s', " \
-                "'%s', '%s', '%s', '%s', '%s', %d);" % \
-                (required[0], required[1], required[2], required[3], required[4],
-                optional[0], optional[1], optional[2], optional[3], optional[4], optional[5])
+                "%s, %s, %s, %s, %s, '%s');" % \
+                (
+                    required['date'], required['thread'],
+                    required['message'], required['user'], required['forum'],
+                    optional['isApproved'], optional['isHighlighted'], optional['isEdited'],
+                    optional['isSpam'], optional['isDeleted'], optional['parent']
+                )
         cursor.execute(query)
 
+
     @staticmethod
-    def fetchById(cursor, postID):
-        query = "SELECT * FROM Post WHERE Post.postID = %d;" % postID
+    def fetchById(cursor, id):
+        query = "SELECT * FROM Post WHERE Post.id = %s;" % id
         cursor.execute(query)
+
         post = cursor.fetchone()
         if post is None:
-            raise DBNotFound("Post with id %d not found" % postID)
+            raise DBNotFound("Post with id %d not found" % id)
         return post
 
+
     @staticmethod
-    def setDeleted(cursor, postID, deleted):
-        query = "UPDATE Post SET isDeleted = '%s' WHERE Post.postID = %d" % (deleted, postID)
+    def setDeleted(cursor, id, deleted):
+        query = "UPDATE Post SET isDeleted = %s WHERE Post.id = %d" % (deleted, id)
+        cursor.execute(query)
+
+
+    @staticmethod
+    def threadUpdatePostCount(cursor, id, value):
+        query = "UPDATE Thread SET posts = posts %s WHERE Thread.id = %d" % (value, id)
         cursor.execute(query)
 
     @staticmethod
-    def updMessage(cursor, postID, message):
-        query = "UPDATE Post SET message = '%s' WHERE Post.postID = %d" % (message, postID)
+    def updMessage(cursor, id, message):
+        query = "UPDATE Post SET message = '%s' WHERE Post.id = %d" % (message, id)
         cursor.execute(query)
 
+
     @staticmethod
-    def updVote(cursor, postId, isLiked):
+    def updVote(cursor, id, isLiked):
         if(isLiked == True):
-            query = "UPDATE Post SET points = points + 1, likes = likes + 1 WHERE Post.postID = %d" % postId
+            query = "UPDATE Post SET points = points + 1, likes = likes + 1 WHERE Post.id = %d" % id
         else:
-            query = "UPDATE Post SET points = points - 1, dislikes = dislikes + 1 WHERE Post.postID = %d" % postId
+            query = "UPDATE Post SET points = points - 1, dislikes = dislikes + 1 WHERE Post.id = %d" % id
         cursor.execute(query)
 
-    # TODO LIMIT
-    # TODO ADD SORT
-    @staticmethod
-    def fetchForumPosts(cursor, forum, since, limit, order):
-        since = getOrDefault(since, "0000-00-00 00:00:00")
-        limit = getOrDefault(limit, 1000)
-        # sort = getOrDefault(sort, "FLAT")
-        order = getOrDefault(order, "DESC")
-        #     TODO: ADD SORT!!
 
-        query = "SELECT * FROM Post WHERE Post.forum = '%s' AND Post.dateCreated > '%s' ORDER BY dateCreated '%s' LIMIT %d "\
-                % (forum, since, order, limit)
+    @staticmethod
+    def fetchForumPosts(cursor, forum, since, limit, order, sort):
+        since = getOrDefault(since, '0000-00-00 00:00:00')
+        limit = getIntOrDefault(limit, 1000)
+        order = getOrDefault(order, 'DESC')
+        sort = hierarchy_sort(sort)
+
+        query = "SELECT * FROM Post WHERE Post.forum = '%s' AND Post.`date` > '%s' ORDER BY `date` %s %s LIMIT %s "\
+                % (forum, since, order, sort, limit)
         cursor.execute(query)
         posts = cursor.fetchall()
         return posts
 
-        # TODO ADD SORT
+
     @staticmethod
-    def fetchThreadPosts(cursor, thread, since, limit, order):
+    def fetchThreadPosts(cursor, thread, since, limit, order, sort):
+        since = getOrDefault(since, '0000-00-00 00:00:00')
+        limit = getOrDefault(limit, '1000')
+        sort = hierarchy_sort(sort)
+        order = getOrDefault(order, 'DESC')
 
-        since = getOrDefault(since, "0000-00-00 00:00:00")
-        limit = getOrDefault(limit, 1000)
-        # sort = getOrDefault(sort, "FLAT")
-        order = getOrDefault(order, "DESC")
-        #     TODO: ADD SORT!!
-
-        query = "SELECT * FROM Post WHERE Post.thread = %d AND Post.dateCreated > '%s' ORDER BY dateCreated '%s' LIMIT %d "\
-                % (thread, since, order, limit)
+        query = "SELECT * FROM Post WHERE Post.thread = %s AND Post.date > '%s' ORDER BY date %s %s LIMIT %s "\
+                % (thread, since, order, sort, limit)
         cursor.execute(query)
         posts = cursor.fetchall()
         return posts
 
-    # TODO LIMIT
+
     @staticmethod
     def fetchUserPosts(cursor, user, since, limit, order):
-        return []
-        since = getOrDefault(since, "0000-00-00 00:00:00")
-        limit = getOrDefault(limit, 1000)
-        order = getOrDefault(order, "DESC")
+        since = getOrDefault(since, '2000-01-01 00:00:00')
+        limit = getIntOrDefault(limit, 1000)
+        order = getOrDefault(order, 'DESC')
 
-        query = "SELECT * FROM Post WHERE Post.user = '%s' AND Post.dateCreated > '%s' ORDER BY dateCreated '%s' LIMIT %d "\
+        query = "SELECT * FROM Post WHERE Post.user = '%s' AND Post.`date` > '%s' ORDER BY `date` %s LIMIT %s "\
                 % (user, since, order, limit)
         cursor.execute(query)
         posts = cursor.fetchall()
@@ -242,69 +285,89 @@ class PostQueries:
 
 class ThreadQueries:
     @staticmethod
-    def fetchById(cursor, threadID):
-        query = "SELECT * FROM Thread WHERE Thread.threadID = %d;" % threadID
+    def fetchById(cursor, id):
+        query = "SELECT * FROM Thread WHERE Thread.id = %s;" % id
         cursor.execute(query)
         thread = cursor.fetchone()
         if thread is None:
-            raise DBNotFound("Thread with id %d not found" % threadID)
+            raise DBNotFound("Thread with id %d not found" % id)
         return thread
 
-    @staticmethod
-    def setClosed(cursor, threadId, isClosed):
-        query = "UPDATE Thread SET isClosed = '%s' WHERE Thread.threadID = %d" % (isClosed, threadId)
-        cursor.execute(query)
 
     @staticmethod
-    def setDeleted(cursor, threadID, deleted):
-        query = "UPDATE Thread SET isDeleted = '%s' WHERE Thread.threadID = %d" % (deleted, threadID)
+    def setClosed(cursor, id, isClosed):
+        query = "UPDATE Thread SET isClosed = %s WHERE Thread.id = %d" % (isClosed, id)
         cursor.execute(query)
 
-    @staticmethod
-    def create(cursor, required, optional):
-        query = "INSERT INTO Thread (title, isClosed, user, dateCreated, message, slug, forum, isDeleted) " \
-                "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s');" % \
-                (required[0], required[1], required[2], required[3], required[4], required[5], required[6], optional[0])
-        cursor.execute(query)
 
     @staticmethod
-    def updMsgSlug(cursor, threadID, message, slug):
-        query = "UPDATE Thread SET message = '%s', slug = '%s' WHERE Thread.threadID = %d" % (message, slug, threadID)
+    def setDeleted(cursor, id, deleted):
+        query = "UPDATE Thread SET isDeleted = %s WHERE Thread.id = %d" % (deleted, id)
+        cursor.execute(query)
+        query = "UPdATE Post SET isDeleted = %s WHERE Post.thread = '%s'" % (deleted, id)
         cursor.execute(query)
 
+
     @staticmethod
-    def updVote(cursor, threadID, isLiked):
+    def create(cursor, required):
+        query = "INSERT INTO Thread (title, isClosed, user, `date`, message, slug, forum, isDeleted) " \
+                "VALUES ('%s', %s, '%s', '%s', '%s', '%s', '%s', %s);" % \
+                (required['title'], required['isClosed'], required['user'], required['date'],
+                 required['message'], required['slug'], required['forum'], required['isDeleted'])
+        cursor.execute(query)
+
+
+    @staticmethod
+    def updMsgSlug(cursor, id, message, slug):
+        query = "UPDATE Thread SET message = '%s', slug = '%s' WHERE Thread.id = %d" % (message, slug, id)
+        cursor.execute(query)
+
+
+    @staticmethod
+    def updVote(cursor, id, isLiked):
         if(isLiked == True):
-            query = "UPDATE Thread SET points = points + 1, likes = likes + 1 WHERE Thread.threadID = %d" % threadID
+            query = "UPDATE Thread SET points = points + 1, likes = likes + 1 WHERE Thread.id = %d" % id
         else:
-            query = "UPDATE Thread SET points = points - 1, dislikes = dislikes + 1 WHERE Thread.threadID = %d" % threadID
+            query = "UPDATE Thread SET points = points - 1, dislikes = dislikes + 1 WHERE Thread.id = %d" % id
         cursor.execute(query)
+
 
     @staticmethod
-    def subscribe(cursor, threadID, user):
-        query = "INSERT INTO Subscribe (user, threadID) VALUES ('%s', %d);" % (user, threadID)
+    def subscribe(cursor, id, user):
+        query = "INSERT INTO Subscribe (user, thread) VALUES ('%s', %d);" % (user, id)
         cursor.execute(query)
+
 
     @staticmethod
-    def unsubscribe(cursor, threadID, user):
-        query = "DELETE FROM Subscribe WHERE threadID = %d AND user = '%s';" % (threadID, user)
+    def unsubscribe(cursor, id, user):
+        query = "DELETE FROM Subscribe WHERE thread = %d AND user = '%s';" % (id, user)
         cursor.execute(query)
 
-    # TODO LIMIT PROBLEMS
+
     @staticmethod
     def fetchForumThreads(cursor, forum, since, limit, order):
-        return []
-        since = getOrDefault(since, "0000-00-00 00:00:00")
-        limit = getOrDefault(limit, 1000)
-        order = getOrDefault(order, "DESC")
+        since = getOrDefault(since, '0000-00-00 00:00:00')
+        limit = getIntOrDefault(limit, 1000)
+        order = getOrDefault(order, 'DESC')
 
-        query = "SELECT * FROM Post WHERE Post.forum = '%s' AND Post.dateCreated > '%s' ORDER BY dateCreated '%s' LIMIT %d "\
+        query = "SELECT * FROM Thread WHERE Thread.forum = '%s' AND Thread.date > '%s' ORDER BY date %s LIMIT %s "\
                 % (forum, since, order, limit)
         cursor.execute(query)
         threads = cursor.fetchall()
-        if threads is None:
-            raise DBNotFound("Threads for this forum '%s' not found" % forum)
-        return cursor.fetchall()
+        return threads
+
+
+    @staticmethod
+    def fetchUserThreads(cursor, user, since, limit, order):
+        since = getOrDefault(since, '0000-00-00 00:00:00')
+        limit = getIntOrDefault(limit, 1000)
+        order = getOrDefault(order, 'DESC')
+
+        query = "SELECT * FROM Thread WHERE Thread.user = '%s' AND Thread.date > '%s' ORDER BY date %s LIMIT %s "\
+                % (user, since, order, limit)
+        cursor.execute(query)
+        threads = cursor.fetchall()
+        return threads
 
 
 # TODO GET SUBSCRIBER BY ID??
