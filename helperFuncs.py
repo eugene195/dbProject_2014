@@ -8,7 +8,7 @@ from mysql.connector.errors import IntegrityError, OperationalError
 
 
 
-# Core settings
+# Core setup settings
 # ----------------------------------------------
 PREFIX = "/db/api"
 
@@ -59,12 +59,6 @@ def getListOrEmpty(inData, name):
         variable = []
     return variable
 
-def returnFalseIfZero(val):
-    if val == 0:
-        return False
-    else:
-        return True
-
 # ----------------------------------------------
 # Python dictionary from list
 # ----------------------------------------------
@@ -107,7 +101,6 @@ def completeUser(user):
                 "subscriptions": getList(UserQueries.getSubscriptions(cursor, user[1])),
                 "username": user[5]
                 }
-
 
     if (complete['isAnonymous'] == True):
         complete['username'] = None

@@ -153,8 +153,15 @@ def forumListUsers():
         short_name = request.args.get('forum')
         users = UserQueries.fetchForumUsers(cursor, short_name, since_id, limit, order)
         response = []
+        noneUsers = []
         for user in users:
-            response.append(completeUser(user))
+            complete = completeUser(user)
+            if complete['username'] == 'None':
+                noneUsers.append(complete)
+            else:
+                response.append(complete)
+        for user in noneUsers:
+            response.append(user)
 
         return jsonify({'code': Codes.OK, 'response': response})
     except DBNotFound as exc:

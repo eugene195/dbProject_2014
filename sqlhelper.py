@@ -1,23 +1,19 @@
 __author__ = 'eugene'
 
-
-# TODO
-tableList = ['Forum', 'User', 'Thread', 'Post', 'Follow', 'Subscribe']
-
-# TODO
-def hierarchy_sort(sort):
+#
+def setSortType(sort):
     if sort is None or sort == 'flat':
         sort = ''
     elif sort == 'tree':
         sort = ', parent ASC'
     elif sort == 'parent_tree':
         sort = ', parent ASC'
-
     return sort
 
 class DBNotFound(Exception):
     def __init__(self, value):
         self.message = value
+
 class RequiredMissing(Exception):
     def __init__(self, param):
         self.message = "Required parameter '%s' not found" % param
@@ -26,16 +22,10 @@ class BadFormat(Exception):
     def __init__(self, param):
         self.message = "Wrong input format, parameter '%s'" % param
 
-def isStated(parameter):
-    if(parameter == None) or (parameter == ""):
-        return False
-    else:
-        return parameter
-
 def getIntOrDefault(obj, default):
     try:
         obj = int(obj)
-    except Exception as e:
+    except Exception:
         obj = default
     return obj
 
@@ -50,6 +40,7 @@ class UtilQueries:
     def clear(cursor):
         query = "SET FOREIGN_KEY_CHECKS=0"
         cursor.execute(query)
+        tableList = ['Forum', 'User', 'Thread', 'Post', 'Follow', 'Subscribe']
 
         for table in tableList:
             query = "TRUNCATE TABLE `%s`;" %table
@@ -68,14 +59,6 @@ class UserQueries:
         if user is None:
             raise DBNotFound("User with email '%s' not found" % email)
         return user
-
-    @staticmethod
-    def fetchByUsername(cursor, username):
-        query = "SELECT userId, about, isAnonymous, name, username, email `User` WHERE `User`.username = '%s'" % username
-        cursor.execute(query)
-        user = cursor.fetchone()
-        return user
-
 
     @staticmethod
     def create(cursor, required):
@@ -132,7 +115,6 @@ class UserQueries:
 
     @staticmethod
     def getUsersFollowee(cursor, user, since_id, limit, order):
-        # limit = getOrDefault(limit, 1000)
         limit = getIntOrDefault(limit, 1000)
         order = getOrDefault(order, 'DESC')
         since_id = getIntOrDefault(since_id, 0)
@@ -151,7 +133,7 @@ class UserQueries:
 
         query = "SELECT * FROM `User` WHERE `User`.id > %d AND EXISTS " \
                     "(SELECT * FROM Post WHERE Post.forum = '%s' AND Post.user = `User`.email) " \
-                "ORDER BY `User`.name %s LIMIT %d;" % (since_id, forum, order, limit)
+                "ORDER BY name %s LIMIT %d;" % (since_id, forum, order, limit)
 
         cursor.execute(query)
         forumUsers = cursor.fetchall()
@@ -189,6 +171,7 @@ class ForumQueries:
         cursor.execute(query)
         forum = cursor.fetchone()
         return forum
+
 
 class PostQueries:
     @staticmethod
@@ -245,10 +228,10 @@ class PostQueries:
 
     @staticmethod
     def fetchForumPosts(cursor, forum, since, limit, order, sort):
-        since = getOrDefault(since, '0000-00-00 00:00:00')
+        since = getOrDefault(since, '2000-01-01 00:00:00')
         limit = getIntOrDefault(limit, 1000)
         order = getOrDefault(order, 'DESC')
-        sort = hierarchy_sort(sort)
+        sort = setSortType(sort)
 
         query = "SELECT * FROM Post WHERE Post.forum = '%s' AND Post.`date` > '%s' ORDER BY `date` %s %s LIMIT %s "\
                 % (forum, since, order, sort, limit)
@@ -259,9 +242,9 @@ class PostQueries:
 
     @staticmethod
     def fetchThreadPosts(cursor, thread, since, limit, order, sort):
-        since = getOrDefault(since, '0000-00-00 00:00:00')
+        since = getOrDefault(since, '2000-01-01 00:00:00')
         limit = getOrDefault(limit, '1000')
-        sort = hierarchy_sort(sort)
+        sort = setSortType(sort)
         order = getOrDefault(order, 'DESC')
 
         query = "SELECT * FROM Post WHERE Post.thread = %s AND Post.date > '%s' ORDER BY date %s %s LIMIT %s "\
@@ -282,6 +265,7 @@ class PostQueries:
         cursor.execute(query)
         posts = cursor.fetchall()
         return posts
+
 
 class ThreadQueries:
     @staticmethod
@@ -346,7 +330,7 @@ class ThreadQueries:
 
     @staticmethod
     def fetchForumThreads(cursor, forum, since, limit, order):
-        since = getOrDefault(since, '0000-00-00 00:00:00')
+        since = getOrDefault(since, '2000-01-01 00:00:00')
         limit = getIntOrDefault(limit, 1000)
         order = getOrDefault(order, 'DESC')
 
@@ -359,7 +343,7 @@ class ThreadQueries:
 
     @staticmethod
     def fetchUserThreads(cursor, user, since, limit, order):
-        since = getOrDefault(since, '0000-00-00 00:00:00')
+        since = getOrDefault(since, '2000-01-01 00:00:00')
         limit = getIntOrDefault(limit, 1000)
         order = getOrDefault(order, 'DESC')
 
@@ -368,6 +352,3 @@ class ThreadQueries:
         cursor.execute(query)
         threads = cursor.fetchall()
         return threads
-
-
-# TODO GET SUBSCRIBER BY ID??
