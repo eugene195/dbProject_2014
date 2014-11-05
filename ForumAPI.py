@@ -156,7 +156,7 @@ def forumListUsers():
         noneUsers = []
         for user in users:
             complete = completeUser(user)
-            if complete['username'] == 'None':
+            if complete['username'] == 'None' or complete['name'] == 'None' or complete['isAnonymous']:
                 noneUsers.append(complete)
             else:
                 response.append(complete)
