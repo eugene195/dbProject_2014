@@ -10,7 +10,7 @@ CREATE TABLE `Follow` (
   PRIMARY KEY (`id`),
   KEY USING HASH (`follower`),
   KEY USING HASH (`followee`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Forum` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -21,7 +21,7 @@ CREATE TABLE `Forum` (
   UNIQUE KEY USING HASH (`name`),
   UNIQUE KEY USING HASH (`short_name`),
   KEY USING HASH (`user`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Post` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -42,11 +42,12 @@ CREATE TABLE `Post` (
   `thread` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY USING HASH (`forum`),
-  KEY USING HASH (`user`),
-  KEY USING HASH (`date`),
-  KEY (`thread`)
+  KEY (`user`, `date`),
+  KEY (`forum`, `date`),
+  KEY (`forum`, `user`),
+  KEY (`thread`, `date`)
   
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Thread` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -63,10 +64,10 @@ CREATE TABLE `Thread` (
   `message` text NOT NULL,
   `forum` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY USING HASH(`forum`),
+  KEY (`forum`, `date`),
   KEY USING HASH(`slug`),
-  KEY USING HASH(`user`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+  KEY (`user`, `date`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Subscribe` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -75,7 +76,7 @@ CREATE TABLE `Subscribe` (
   PRIMARY KEY (`id`),
   KEY (`thread`),
   KEY USING HASH(`user`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `User` (
@@ -87,7 +88,7 @@ CREATE TABLE `User` (
   `username` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY USING HASH (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 
 DROP TRIGGER IF EXISTS ins_post;
