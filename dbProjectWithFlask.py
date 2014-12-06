@@ -17,6 +17,7 @@ app.register_blueprint(thread_api, url_prefix = PREFIX + '/thread')
 
 @app.route(PREFIX+ "/clear/", methods=['POST'])
 def clear():
+    inData = request.get_json(force=True)
     cursor = cnx.cursor()
     UtilQueries.clear(cursor)
     cnx.commit()

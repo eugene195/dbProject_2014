@@ -63,6 +63,7 @@ CREATE TABLE `Thread` (
   `user` varchar(255) NOT NULL,
   `message` text NOT NULL,
   `forum` varchar(255) NOT NULL,
+  `removedPosts` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY (`forum`, `date`),
   KEY USING HASH(`slug`),

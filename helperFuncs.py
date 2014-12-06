@@ -14,7 +14,7 @@ PREFIX = "/db/api"
 
 cnx = mysql.connector.connect(user='root', password='root',
                           host='127.0.0.1',
-                          database='dbProject')
+                          database='dbProjectRecovery')
 
 
 # Return default value if object is not valid

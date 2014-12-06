@@ -286,7 +286,10 @@ class ThreadQueries:
 
     @staticmethod
     def setDeleted(cursor, id, deleted):
-        query = "UPDATE Thread SET isDeleted = %s WHERE Thread.id = %d" % (deleted, id)
+        if deleted:
+            query = "UPDATE Thread SET isDeleted = True, removedPosts = posts, posts = 0 WHERE Thread.id = %d" % (id)
+        else:
+            query = "UPDATE Thread SET isDeleted = False, posts = removedPosts, removedPosts = 0 WHERE Thread.id = %d" % (id)
         cursor.execute(query)
         query = "UPdATE Post SET isDeleted = %s WHERE Post.thread = '%s'" % (deleted, id)
         cursor.execute(query)
