@@ -72,7 +72,6 @@ def threadCreate():
 #
 #           /db/api/thread/details/?thread=1
 #
-# TODO
 @thread_api.route('/details/', methods=['GET'])
 def threadDetails():
     try:
@@ -233,7 +232,7 @@ def threadRestore():
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.message})
 
-#
+# TODO select before update
 #           /db/api/thread/update/
 #           {"message": "hey hey hey hey!", "slug": "newslug", "thread": 1}
 @thread_api.route('/update/', methods=['POST'])
@@ -260,7 +259,7 @@ def threadUpdate():
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.message})
 
-#
+#   TODO SELECT THREAD BEFORE UPDATE
 #           /db/api/thread/vote/
 #           {"vote": 1, "thread": 1}
 @thread_api.route('/vote/', methods=['POST'])
@@ -271,9 +270,9 @@ def threadVote():
         threadId = inData['thread']
         vote = inData['vote']
 
-        if (vote == 1):
+        if vote == 1:
             liked = True
-        elif (vote == -1):
+        elif vote == -1:
             liked = False
         else:
             raise RequiredMissing("vote")

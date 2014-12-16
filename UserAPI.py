@@ -64,7 +64,7 @@ def userDetails():
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.message})
 
 
-
+# TODO SELECT BEFORE UPDATE
 #       /db/api/user/follow/
 #        {"follower": "example@mail.ru", "followee": "example3@mail.ru"}
 #
@@ -92,6 +92,7 @@ def userFollow():
         return jsonify({'code': Codes.INCORRECT_DB_QUERY, 'response': exc.msg})
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
+
 
 #
 #       /db/api/user/listFollowers/?user=example%40mail.ru&order=asc
@@ -189,7 +190,7 @@ def userListPosts():
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
 
-#
+# TODO SELECT BEFORE UPDATE
 #       /db/api/user/unfollow/
 #       {"follower": "example@mail.ru", "followee": "example3@mail.ru"}
 @user_api.route('/unfollow/', methods=['POST'])
@@ -215,7 +216,7 @@ def userUnfollow():
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
 
-#
+## TODO SELECT BEFORE UPDATE
 #       /db/api/user/updateProfile/
 #       {"about": "Wowowowow!!!", "user": "example@mail.ru", "name": "NewName2"}
 @user_api.route('/updateProfile/', methods=['POST'])

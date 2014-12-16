@@ -17,7 +17,7 @@ post_api = Blueprint('post_api', __name__)
 #    db/api/post/create/
 #    {"isApproved": true, "user": "example@mail.ru", "date": "2014-01-01 00:00:01", "message": "my message 1", "isSpam": false, "isHighlighted": true, "thread": 4, "forum": "forum2", "isDeleted": false, "isEdited": true}
 #
-# TODO Parent = 0 not null
+# TODO WITHOUT POST SELECT
 @post_api.route('/create/', methods=['POST'])
 def createPost():
     try:
@@ -127,7 +127,7 @@ def postList():
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.message})
 
-#
+#   TODO SINGLE UPDATE
 #                        db/api/post/remove/
 #       {"post": 3}
 
@@ -180,7 +180,7 @@ def postRestore():
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.message})
 
-#
+#   TODO SELECT BEFORE UPDATE
 #           db/api/post/update/
 #           {"post": 3, "message": "my message 1"}
 
@@ -206,7 +206,7 @@ def postUpdate():
     except Exception as exc:
         return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.message})
 
-#
+# TODO SELECT BEFORE UPDATE
 #       /db/api/post/vote/
 #       {"vote": -1, "post": 5}
 

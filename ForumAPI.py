@@ -18,14 +18,11 @@ def createForum():
         short_name = inData['short_name']
         email = inData['user']
 
-        try:
-            ForumQueries.create(cursor, name, short_name, email)
-            cnx.commit()
-        except IntegrityError as exc:
-            pass
-        forum = ForumQueries.fetchBySlug(cursor, short_name)
+        ForumQueries.create(cursor, name, short_name, email)
+        cnx.commit()
+        forunID = cursor.lastrowid
 
-        response = {'id': forum[0], 'name': name, 'short_name': short_name, 'user': email}
+        response = {'id': forunID, 'name': name, 'short_name': short_name, 'user': email}
         return jsonify({'code': Codes.OK, 'response': response})
     except DBNotFound as exc:
         return jsonify({'code': Codes.NOT_FOUND, 'response': exc.message})
@@ -79,7 +76,7 @@ def forumListPosts():
         related = getListOrEmpty(request.args, 'related')
 
         short_name = request.args.get('forum')
-        forum = ForumQueries.fetchBySlug(cursor, short_name)
+
         posts = PostQueries.fetchForumPosts(cursor, short_name, since, limit, order, sort)
         response = []
         for post in posts:
@@ -87,6 +84,7 @@ def forumListPosts():
             if 'user' in related:
                 post.update({'user': completeUser(UserQueries.fetchByEmail(cursor, post['user']))})
             if 'forum' in related:
+                forum = ForumQueries.fetchBySlug(cursor, short_name)
                 post.update({'forum': completeForum(forum)})
             if 'thread' in related:
                 post.update({'thread': completeThread(ThreadQueries.fetchById(cursor, post['thread']))})
@@ -115,7 +113,6 @@ def forumListThreads():
         related = getListOrEmpty(request.args, 'related')
 
         short_name = request.args.get('forum')
-        forum = ForumQueries.fetchBySlug(cursor, short_name)
         threads = ThreadQueries.fetchForumThreads(cursor, short_name, since, limit, order)
 
         response = []
@@ -125,6 +122,7 @@ def forumListThreads():
                 thread.update({'user': completeUser(UserQueries.fetchByEmail(cursor, thread['user']))})
 
             if 'forum' in related:
+                forum = ForumQueries.fetchBySlug(cursor, short_name)
                 thread.update({'forum': completeForum(forum)})
             response.append(thread)
 
