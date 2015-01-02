@@ -5,18 +5,42 @@ from sqlhelper import UserQueries, ForumQueries, PostQueries, ThreadQueries, DBN
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.errors import IntegrityError, OperationalError
-
-
+from mysql.connector.pooling import MySQLConnectionPool
+from functools import wraps
 
 # Core setup settings
 # ----------------------------------------------
 PREFIX = "/db/api"
 
-cnx = mysql.connector.connect(user='root', password='root',
-                          host='127.0.0.1',
-                          database='dbProjectRecovery')
+DBConnection = {
+    'user': 'root',
+    'password': 'root',
+    'host': '127.0.0.1',
+    'database': 'dbProjectRecovery'
+}
 
+pool = MySQLConnectionPool(pool_name="pool", pool_size=5, **DBConnection)
 
+def connect_to_DB(name):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            connect = pool.get_connection()
+            try:
+                ret = f(connect, *args, **kwargs)
+            except DBNotFound as exc:
+                return jsonify({'code': Codes.NOT_FOUND, 'response': exc.message})
+            except (RequiredMissing, KeyError) as exc:
+                return jsonify({'code': Codes.INVALID_QUERY, 'response': exc.message})
+            except (OperationalError, IntegrityError) as exc:
+                return jsonify({'code': Codes.INCORRECT_DB_QUERY, 'response': exc.msg})
+            except Exception as exc:
+                return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
+
+            connect.close()
+            return ret
+        return wrapped
+    return decorator
 # Return default value if object is not valid
 # ----------------------------------------------
 def getNoneIfZero(obj):
