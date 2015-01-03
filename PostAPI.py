@@ -66,7 +66,7 @@ def postDetails(cnx):
     post = PostQueries.fetchById(cursor, postID)
     response = completePost(post)
     if 'user' in related:
-        response.update({'user': completeUser(UserQueries.fetchByEmail(cursor, response['user']))})
+        response.update({'user': completeUser(UserQueries.fetchByEmail(cursor, response['user']), cnx)})
     if 'thread' in related:
         response.update({'thread': completeThread(ThreadQueries.fetchById(cursor, response['thread']))})
     if 'forum' in related:

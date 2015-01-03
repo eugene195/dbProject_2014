@@ -43,7 +43,7 @@ def forumDetails(cnx):
     response = completeForum(forum)
     if 'user' in related:
         user = UserQueries.fetchByEmail(cursor, forum[3])
-        userD = {'user': completeUser(user)}
+        userD = {'user': completeUser(user, cnx)}
         response.update(userD)
 
     return jsonify({'code': Codes.OK, 'response': response})
@@ -71,7 +71,7 @@ def forumListPosts(cnx):
     for post in posts:
         post = completePost(post)
         if 'user' in related:
-            post.update({'user': completeUser(UserQueries.fetchByEmail(cursor, post['user']))})
+            post.update({'user': completeUser(UserQueries.fetchByEmail(cursor, post['user']), cnx)})
         if 'forum' in related:
             forum = ForumQueries.fetchBySlug(cursor, short_name)
             post.update({'forum': completeForum(forum)})
@@ -101,7 +101,7 @@ def forumListThreads(cnx):
     for thread in threads:
         thread = completeThread(thread)
         if 'user' in related:
-            thread.update({'user': completeUser(UserQueries.fetchByEmail(cursor, thread['user']))})
+            thread.update({'user': completeUser(UserQueries.fetchByEmail(cursor, thread['user']), cnx)})
 
         if 'forum' in related:
             forum = ForumQueries.fetchBySlug(cursor, short_name)
@@ -128,7 +128,7 @@ def forumListUsers(cnx):
     response = []
     noneUsers = []
     for user in users:
-        complete = completeUser(user)
+        complete = completeUser(user, cnx)
         if complete['username'] == 'None' or complete['name'] == 'None' or complete['isAnonymous']:
             noneUsers.append(complete)
         else:

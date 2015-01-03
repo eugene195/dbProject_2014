@@ -44,7 +44,7 @@ def userDetails(cnx):
     cursor = cnx.cursor()
     email = request.args.get('user')
     user = UserQueries.fetchByEmail(cursor, email)
-    response = completeUser(user)
+    response = completeUser(user, cnx)
     return jsonify({'code': Codes.OK, 'response': response})
 
 
@@ -66,7 +66,7 @@ def userFollow(cnx):
     cnx.commit()
 
     user = UserQueries.fetchByEmail(cursor, follower)
-    response= completeUser(user)
+    response= completeUser(user, cnx)
 
     return jsonify({'code': Codes.OK, 'response': response})
 
@@ -161,7 +161,7 @@ def userUnfollow(cnx):
     UserQueries.unfollow(cursor, followee, follower)
     cnx.commit()
     user = UserQueries.fetchByEmail(cursor, follower)
-    response = completeUser(user)
+    response = completeUser(user, cnx)
 
     return jsonify({'code': Codes.OK, 'response': response})
 
@@ -182,6 +182,6 @@ def userUpdate(cnx):
     UserQueries.updateProfile(cursor, email, about, name)
     cnx.commit()
     user = UserQueries.fetchByEmail(cursor, email)
-    response = completeUser(user)
+    response = completeUser(user, cnx)
     return jsonify({'code': Codes.OK, 'response': response})
 

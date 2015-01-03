@@ -19,7 +19,7 @@ DBConnection = {
     'database': 'dbProjectRecovery'
 }
 
-pool = MySQLConnectionPool(pool_name="pool", pool_size=5, **DBConnection)
+pool = MySQLConnectionPool(pool_name="pool", pool_size=32, **DBConnection)
 
 def connect_to_DB(name):
     def decorator(f):
@@ -36,8 +36,8 @@ def connect_to_DB(name):
                 return jsonify({'code': Codes.INCORRECT_DB_QUERY, 'response': exc.msg})
             except Exception as exc:
                 return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
-
-            connect.close()
+            finally:
+                connect.close()
             return ret
         return wrapped
     return decorator
@@ -115,7 +115,7 @@ def completeThread(thread):
     fixDate(complete)
     return complete
 
-def completeUser(user):
+def completeUser(user, cnx):
     cursor = cnx.cursor()
     complete = {
                 "about": user[0], "email": user[1],

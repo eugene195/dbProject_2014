@@ -74,7 +74,7 @@ def threadDetails(cnx):
     response = completeThread(thread)
 
     if 'user' in related:
-        response.update({'user': completeUser(UserQueries.fetchByEmail(cursor, response['user']))})
+        response.update({'user': completeUser(UserQueries.fetchByEmail(cursor, response['user']), cnx)})
         related.remove('user')
     if 'forum' in related:
         response.update({'forum': completeForum(ForumQueries.fetchBySlug(cursor, response['forum']))})
