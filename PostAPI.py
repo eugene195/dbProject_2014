@@ -12,7 +12,6 @@ post_api = Blueprint('post_api', __name__)
 #    db/api/post/create/
 #    {"isApproved": true, "user": "example@mail.ru", "date": "2014-01-01 00:00:01", "message": "my message 1", "isSpam": false, "isHighlighted": true, "thread": 4, "forum": "forum2", "isDeleted": false, "isEdited": true}
 #
-# TODO WITHOUT POST SELECT
 @post_api.route('/create/', methods=['POST'])
 @connect_to_DB('createPost')
 def createPost(cnx):
@@ -39,15 +38,13 @@ def createPost(cnx):
     PostQueries.create(cursor, requiredParams, optionalParams)
     cnx.commit()
     postID = cursor.lastrowid
-    post = PostQueries.fetchById(cursor, postID)
     response = {
-        "date": post[1], "forum": post[4], "id": post[0],
-        "isApproved": post[6], "isDeleted": post[7], "isEdited": post[8],
-        "isHighlighted": post[9], "isSpam": post[10],
-        "message": post[11], "parent": post[13],
-        "thread": post[15], "user": post[12]
+        "date": date, "forum": forum, "id":postID,
+        "isApproved": isApproved, "isDeleted": isDeleted, "isEdited": isEdited,
+        "isHighlighted": isHighlighted, "isSpam": isSpam,
+        "message": message, "parent": parent,
+        "thread": threadID, "user": user
     }
-    fixDate(response)
     return jsonify({'code': Codes.OK, 'response': response})
 
 

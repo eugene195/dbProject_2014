@@ -133,6 +133,7 @@ def forumListUsers(cnx):
             noneUsers.append(complete)
         else:
             response.append(complete)
+    # ????TODO
     for user in noneUsers:
         response.append(user)
 
