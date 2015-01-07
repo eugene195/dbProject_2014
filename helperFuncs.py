@@ -32,8 +32,10 @@ def connect_to_DB(name):
                 return jsonify({'code': Codes.NOT_FOUND, 'response': exc.message})
             except (RequiredMissing, KeyError) as exc:
                 return jsonify({'code': Codes.INVALID_QUERY, 'response': exc.message})
-            except (OperationalError, IntegrityError) as exc:
+            except (OperationalError) as exc:
                 return jsonify({'code': Codes.INCORRECT_DB_QUERY, 'response': exc.msg})
+            except (IntegrityError) as exc:
+                return jsonify({'code': Codes.USER_EXISTS, 'response': exc.msg})
             except Exception as exc:
                 return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
             finally:
