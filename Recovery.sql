@@ -5,8 +5,8 @@ USE dbProjectRecovery;
 
 CREATE TABLE `Follow` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `follower` varchar(255) NOT NULL,
-  `followee` varchar(255) NOT NULL,
+  `follower` char(40) NOT NULL,
+  `followee` char(40) NOT NULL,
   PRIMARY KEY (`id`),
   KEY USING HASH (`follower`),
   KEY USING HASH (`followee`)
@@ -14,9 +14,9 @@ CREATE TABLE `Follow` (
 
 CREATE TABLE `Forum` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `short_name` varchar(255) NOT NULL,
-  `user` varchar(255) NOT NULL,
+  `name` char(40) CHARACTER SET utf8 NOT NULL,
+  `short_name` char(40) NOT NULL,
+  `user` char(40) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY USING HASH (`name`),
   UNIQUE KEY USING HASH (`short_name`),
@@ -28,15 +28,15 @@ CREATE TABLE `Post` (
   `date` datetime NOT NULL,
   `likes` int(11) NOT NULL DEFAULT '0',
   `dislikes` int(11) NOT NULL DEFAULT '0',
-  `forum` varchar(255) NOT NULL,
-  `path` varchar(255) NOT NULL DEFAULT '',
+  `forum` char(40) NOT NULL,
+  `path` char(40) NOT NULL DEFAULT '',
   `isApproved` tinyint(1) NOT NULL DEFAULT '0',
   `isDeleted` tinyint(1) NOT NULL DEFAULT '0',
   `isEdited` tinyint(1) NOT NULL DEFAULT '0',
   `isHighlighted` tinyint(1) NOT NULL DEFAULT '0',
   `isSpam` tinyint(1) NOT NULL DEFAULT '0',
   `message` text NOT NULL,
-  `user` varchar(255) NOT NULL,
+  `user` char(40) NOT NULL,
   `parent` int(11) DEFAULT NULL,
   `points` int(11) NOT NULL DEFAULT '0',
   `thread` int(11) NOT NULL,
@@ -58,11 +58,11 @@ CREATE TABLE `Thread` (
   `isDeleted` tinyint(1) NOT NULL DEFAULT '0',
   `points` int(11) NOT NULL DEFAULT '0',
   `posts` int(11) NOT NULL DEFAULT '0',
-  `slug` varchar(255) NOT NULL,
-  `title` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `user` varchar(255) NOT NULL,
+  `slug` char(40) NOT NULL,
+  `title` char(40) CHARACTER SET utf8 NOT NULL,
+  `user` char(40) NOT NULL,
   `message` text NOT NULL,
-  `forum` varchar(255) NOT NULL,
+  `forum` char(40) NOT NULL,
   `removedPosts` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY (`forum`, `date`),
@@ -72,7 +72,7 @@ CREATE TABLE `Thread` (
 
 CREATE TABLE `Subscribe` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user` varchar(255) NOT NULL,
+  `user` char(40) NOT NULL,
   `thread` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY (`thread`),
@@ -82,11 +82,11 @@ CREATE TABLE `Subscribe` (
 
 CREATE TABLE `User` (
   `about` text NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `email` char(40) NOT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `isAnonymous` tinyint(1) NOT NULL DEFAULT '0',
-  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `username` varchar(255) NOT NULL,
+  `name` char(40) CHARACTER SET utf8 NOT NULL,
+  `username` char(40) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY USING HASH (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
