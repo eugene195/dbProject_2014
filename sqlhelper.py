@@ -131,9 +131,12 @@ class UserQueries:
         limit = getIntOrDefault(limit, 1000)
         order = getOrDefault(order, 'DESC')
 
-        query = "SELECT * FROM `User` WHERE `User`.id > %d AND EXISTS " \
-                    "(SELECT * FROM Post WHERE Post.forum = '%s' AND Post.user = `User`.email) " \
-                "ORDER BY name %s LIMIT %d;" % (since_id, forum, order, limit)
+        query = '''SELECT * FROM `User` WHERE `User`.email IN
+                    (
+                        SELECT DISTINCT user FROM Post WHERE forum = '%s'
+                    )
+                    AND `User`.id > %d
+                    ORDER BY name %s LIMIT %d;''' % (forum, since_id, order, limit)
 
         cursor.execute(query)
         forumUsers = cursor.fetchall()
