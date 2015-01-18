@@ -16,7 +16,7 @@ DBConnection = {
     'user': 'root',
     'password': 'root',
     'host': '127.0.0.1',
-    'database': 'dbProjectRecovery'
+    'database': 'dbISAM'
 }
 
 pool = MySQLConnectionPool(pool_name="pool", pool_size=32, **DBConnection)
