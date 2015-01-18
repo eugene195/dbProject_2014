@@ -43,7 +43,7 @@ class UtilQueries:
         tableList = ['Forum', 'User', 'Thread', 'Post', 'Follow', 'Subscribe']
 
         for table in tableList:
-            query = "TRUNCATE TABLE `%s`;" %table
+            query = '''DELETE %s.* FROM %s;''' % (table, table)
             cursor.execute(query)
 
         query = "SET FOREIGN_KEY_CHECKS=1"
@@ -131,12 +131,14 @@ class UserQueries:
         limit = getIntOrDefault(limit, 1000)
         order = getOrDefault(order, 'DESC')
 
-        query = '''SELECT * FROM `User` WHERE `User`.email IN
-                    (
-                        SELECT DISTINCT user FROM Post WHERE forum = '%s'
-                    )
-                    AND `User`.id > %d
-                    ORDER BY name %s LIMIT %d;''' % (forum, since_id, order, limit)
+        query = '''SELECT *
+                    FROM `User`
+                    WHERE id >= %d AND
+                    email IN (
+                    SELECT DISTINCT `user` FROM `Post`
+                    WHERE `forum` = '%s'
+                    ) ORDER BY `User`.`name` %s LIMIT %d
+                    ''' % (since_id, forum, order, limit)
 
         cursor.execute(query)
         forumUsers = cursor.fetchall()

@@ -126,15 +126,8 @@ def forumListUsers(cnx):
     short_name = request.args.get('forum')
     users = UserQueries.fetchForumUsers(cursor, short_name, since_id, limit, order)
     response = []
-    noneUsers = []
     for user in users:
         complete = completeUser(user, cnx)
-        if complete['username'] == 'None' or complete['name'] == 'None' or complete['isAnonymous']:
-            noneUsers.append(complete)
-        else:
-            response.append(complete)
-    # ????TODO
-    for user in noneUsers:
-        response.append(user)
+        response.append(complete)
 
     return jsonify({'code': Codes.OK, 'response': response})

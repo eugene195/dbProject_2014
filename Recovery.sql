@@ -4,9 +4,9 @@ CREATE DATABASE dbProjectRecovery;
 USE dbProjectRecovery;
 
 CREATE TABLE `Follow` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `follower` char(40) NOT NULL,
-  `followee` char(40) NOT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `follower` CHAR(25) NOT NULL,
+  `followee` CHAR(25) NOT NULL,
   PRIMARY KEY (`id`),
   KEY USING HASH (`follower`),
   KEY USING HASH (`followee`)
@@ -14,9 +14,9 @@ CREATE TABLE `Follow` (
 
 CREATE TABLE `Forum` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` char(40) CHARACTER SET utf8 NOT NULL,
-  `short_name` char(40) NOT NULL,
-  `user` char(40) NOT NULL,
+  `name` CHAR(35) NOT NULL,
+  `short_name` CHAR(35) NOT NULL,
+  `user` CHAR(25) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY USING HASH (`name`),
   UNIQUE KEY USING HASH (`short_name`),
@@ -24,23 +24,24 @@ CREATE TABLE `Forum` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Post` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `date` datetime NOT NULL,
-  `likes` int(11) NOT NULL DEFAULT '0',
-  `dislikes` int(11) NOT NULL DEFAULT '0',
-  `forum` char(40) NOT NULL,
-  `path` char(40) NOT NULL DEFAULT '',
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `date` DATETIME NOT NULL,
+  `likes` SMALLINT NOT NULL DEFAULT '0',
+  `dislikes` SMALLINT NOT NULL DEFAULT '0',
+  `forum` CHAR(35) NOT NULL,
+  `path` CHAR(40) NOT NULL DEFAULT '',
   `isApproved` tinyint(1) NOT NULL DEFAULT '0',
   `isDeleted` tinyint(1) NOT NULL DEFAULT '0',
   `isEdited` tinyint(1) NOT NULL DEFAULT '0',
   `isHighlighted` tinyint(1) NOT NULL DEFAULT '0',
   `isSpam` tinyint(1) NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
-  `user` char(40) NOT NULL,
-  `parent` int(11) DEFAULT NULL,
-  `points` int(11) NOT NULL DEFAULT '0',
-  `thread` int(11) NOT NULL,
+  `message` TEXT NOT NULL,
+  `user` CHAR(25) NOT NULL,
+  `parent` INT(11) DEFAULT NULL,
+  `points` SMALLINT NOT NULL DEFAULT '0',
+  `thread` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY (`parent`),
   KEY USING HASH (`forum`),
   KEY (`user`, `date`),
   KEY (`forum`, `date`),
@@ -50,30 +51,30 @@ CREATE TABLE `Post` (
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Thread` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `date` datetime NOT NULL,
-  `dislikes` int(11) NOT NULL DEFAULT '0',
-  `likes` int(11) NOT NULL DEFAULT '0',
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `date` DATETIME NOT NULL,
+  `dislikes` SMALLINT NOT NULL DEFAULT '0',
+  `likes` SMALLINT NOT NULL DEFAULT '0',
   `isClosed` tinyint(1) NOT NULL DEFAULT '0',
   `isDeleted` tinyint(1) NOT NULL DEFAULT '0',
-  `points` int(11) NOT NULL DEFAULT '0',
-  `posts` int(11) NOT NULL DEFAULT '0',
-  `slug` char(40) NOT NULL,
-  `title` char(40) CHARACTER SET utf8 NOT NULL,
-  `user` char(40) NOT NULL,
-  `message` text NOT NULL,
-  `forum` char(40) NOT NULL,
-  `removedPosts` int(11) NOT NULL DEFAULT '0',
+  `points` SMALLINT NOT NULL DEFAULT '0',
+  `posts` SMALLINT NOT NULL DEFAULT '0',
+  `slug` CHAR(40) NOT NULL,
+  `title` CHAR(40) CHARACTER SET utf8 NOT NULL,
+  `user` CHAR(25) NOT NULL,
+  `message` TEXT NOT NULL,
+  `forum` CHAR(35) NOT NULL,
+  `removedPosts` SMALLINT NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY (`forum`, `date`),
   KEY USING HASH(`slug`),
-  KEY (`user`, `date`)
+  KEY (`user`, `date`),
+  KEY USING HASH (`forum`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Subscribe` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user` char(40) NOT NULL,
-  `thread` int(11) NOT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user` CHAR(25) NOT NULL,
+  `thread` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY (`thread`),
   KEY USING HASH(`user`)
@@ -82,13 +83,14 @@ CREATE TABLE `Subscribe` (
 
 CREATE TABLE `User` (
   `about` text NOT NULL,
-  `email` char(40) NOT NULL,
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` char(25) NOT NULL,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
   `isAnonymous` tinyint(1) NOT NULL DEFAULT '0',
-  `name` char(40) CHARACTER SET utf8 NOT NULL,
-  `username` char(40) NOT NULL,
+  `name` CHAR(25) NOT NULL,
+  `username` CHAR(25) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY USING HASH (`email`)
+  UNIQUE KEY USING HASH (`email`),
+  KEY USING HASH (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 
