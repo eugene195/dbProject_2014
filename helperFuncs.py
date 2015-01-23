@@ -29,7 +29,8 @@ app = Flask(__name__)
 conn = MySQLdb.connect(host="localhost",
                     user="root",
                     passwd="root",
-                    charset='utf8',)
+                    charset='utf8',
+                    db="dbISAM",)
 
 # pool = MySQLConnectionPool(pool_name="pool", pool_size=32, **DBConnection)
 # connect = pool.get_connection()
