@@ -11,17 +11,17 @@ forum_api = Blueprint('forum_api', __name__)
 #
 @forum_api.route('/create/', methods=['POST'])
 @connect_to_DB('createForum')
-def createForum(cnx):
+def createForum(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     name = inData['name']
     short_name = inData['short_name']
     email = inData['user']
 
-    ForumQueries.create(cursor, name, short_name, email)
+    ForumQueries.create(curs, name, short_name, email)
     cnx.commit()
-    forunID = cursor.lastrowid
+    forunID = curs.lastrowid
 
     response = {'id': forunID, 'name': name, 'short_name': short_name, 'user': email}
     return jsonify({'code': Codes.OK, 'response': response})
@@ -33,16 +33,16 @@ def createForum(cnx):
 #
 @forum_api.route('/details/', methods=['GET'])
 @connect_to_DB('forumDetails')
-def forumDetails(cnx):
+def forumDetails(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     related = getListOrEmpty(request.args, 'related')
     short_name = request.args.get('forum')
 
-    forum = ForumQueries.fetchBySlug(cursor, short_name)
+    forum = ForumQueries.fetchBySlug(curs, short_name)
     response = completeForum(forum)
     if 'user' in related:
-        user = UserQueries.fetchByEmail(cursor, forum[3])
+        user = UserQueries.fetchByEmail(curs, forum[3])
         userD = {'user': completeUser(user, cnx)}
         response.update(userD)
 
@@ -55,9 +55,9 @@ def forumDetails(cnx):
 
 @forum_api.route('/listPosts/', methods=['GET'])
 @connect_to_DB('forumListPosts')
-def forumListPosts(cnx):
+def forumListPosts(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     since = request.args.get('since')
     limit = request.args.get('limit')
     sort = request.args.get('sort')
@@ -66,17 +66,17 @@ def forumListPosts(cnx):
 
     short_name = request.args.get('forum')
 
-    posts = PostQueries.fetchForumPosts(cursor, short_name, since, limit, order, sort)
+    posts = PostQueries.fetchForumPosts(curs, short_name, since, limit, order, sort)
     response = []
     for post in posts:
         post = completePost(post)
         if 'user' in related:
-            post.update({'user': completeUser(UserQueries.fetchByEmail(cursor, post['user']), cnx)})
+            post.update({'user': completeUser(UserQueries.fetchByEmail(curs, post['user']), cnx)})
         if 'forum' in related:
-            forum = ForumQueries.fetchBySlug(cursor, short_name)
+            forum = ForumQueries.fetchBySlug(curs, short_name)
             post.update({'forum': completeForum(forum)})
         if 'thread' in related:
-            post.update({'thread': completeThread(ThreadQueries.fetchById(cursor, post['thread']))})
+            post.update({'thread': completeThread(ThreadQueries.fetchById(curs, post['thread']))})
         response.append(post)
 
     return jsonify({'code': Codes.OK, 'response': response})
@@ -86,25 +86,25 @@ def forumListPosts(cnx):
 #
 @forum_api.route('/listThreads/', methods=['GET'])
 @connect_to_DB('forumListThreads')
-def forumListThreads(cnx):
+def forumListThreads(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     since = request.args.get('since')
     limit = request.args.get('limit')
     order = request.args.get('order')
     related = getListOrEmpty(request.args, 'related')
 
     short_name = request.args.get('forum')
-    threads = ThreadQueries.fetchForumThreads(cursor, short_name, since, limit, order)
+    threads = ThreadQueries.fetchForumThreads(curs, short_name, since, limit, order)
 
     response = []
     for thread in threads:
         thread = completeThread(thread)
         if 'user' in related:
-            thread.update({'user': completeUser(UserQueries.fetchByEmail(cursor, thread['user']), cnx)})
+            thread.update({'user': completeUser(UserQueries.fetchByEmail(curs, thread['user']), cnx)})
 
         if 'forum' in related:
-            forum = ForumQueries.fetchBySlug(cursor, short_name)
+            forum = ForumQueries.fetchBySlug(curs, short_name)
             thread.update({'forum': completeForum(forum)})
         response.append(thread)
 
@@ -116,15 +116,15 @@ def forumListThreads(cnx):
 
 @forum_api.route('/listUsers/', methods=['GET'])
 @connect_to_DB('forumListUsers')
-def forumListUsers(cnx):
+def forumListUsers(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     since_id = request.args.get('since_id')
     limit = request.args.get('limit')
     order = request.args.get('order')
 
     short_name = request.args.get('forum')
-    users = UserQueries.fetchForumUsers(cursor, short_name, since_id, limit, order)
+    users = UserQueries.fetchForumUsers(curs, short_name, since_id, limit, order)
     response = []
     for user in users:
         complete = completeUser(user, cnx)

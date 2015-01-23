@@ -14,9 +14,9 @@ thread_api = Blueprint('thread_api', __name__)
 
 @thread_api.route('/close/', methods=['POST'])
 @connect_to_DB('threadClose')
-def threadClose(cnx):
+def threadClose(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     threadId = inData['thread']
 
@@ -32,9 +32,9 @@ def threadClose(cnx):
 #
 @thread_api.route('/create/', methods=['POST'])
 @connect_to_DB('threadCreate')
-def threadCreate(cnx):
+def threadCreate(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
 
     forum = inData['forum']
@@ -62,9 +62,9 @@ def threadCreate(cnx):
 #
 @thread_api.route('/details/', methods=['GET'])
 @connect_to_DB('threadDetails')
-def threadDetails(cnx):
+def threadDetails(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     related = getListOrEmpty(request.args, 'related')
     threadID = request.args.get('thread')
     if threadID is None:
@@ -90,9 +90,9 @@ def threadDetails(cnx):
 
 @thread_api.route('/list/', methods=['GET'])
 @connect_to_DB('threadList')
-def threadList(cnx):
+def threadList(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     since = request.args.get('since')
     limit = request.args.get('limit')
     order = request.args.get('order')
@@ -117,9 +117,9 @@ def threadList(cnx):
 #
 @thread_api.route('/listPosts/', methods=['GET'])
 @connect_to_DB('threadListPosts')
-def threadListPosts(cnx):
+def threadListPosts(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     since = request.args.get('since')
     limit = request.args.get('limit')
     order = request.args.get('order')
@@ -138,9 +138,9 @@ def threadListPosts(cnx):
 #       {"thread": 1}
 @thread_api.route('/open/', methods=['POST'])
 @connect_to_DB('threadOpen')
-def threadOpen(cnx):
+def threadOpen(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     threadId = inData['thread']
 
@@ -154,9 +154,9 @@ def threadOpen(cnx):
 #       {"thread": 1}
 @thread_api.route('/remove/', methods=['POST'])
 @connect_to_DB('threadRemove')
-def threadRemove(cnx):
+def threadRemove(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     threadId = inData['thread']
 
@@ -171,9 +171,9 @@ def threadRemove(cnx):
 #       {"thread": 1}
 @thread_api.route('/restore/', methods=['POST'])
 @connect_to_DB('threadRestore')
-def threadRestore(cnx):
+def threadRestore(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     threadId = inData['thread']
 
@@ -188,9 +188,9 @@ def threadRestore(cnx):
 #           {"message": "hey hey hey hey!", "slug": "newslug", "thread": 1}
 @thread_api.route('/update/', methods=['POST'])
 @connect_to_DB('threadUpdate')
-def threadUpdate(cnx):
+def threadUpdate(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
 
     threadID = inData['thread']
@@ -208,9 +208,9 @@ def threadUpdate(cnx):
 #           {"vote": 1, "thread": 1}
 @thread_api.route('/vote/', methods=['POST'])
 @connect_to_DB('threadVote')
-def threadVote(cnx):
+def threadVote(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     threadId = inData['thread']
     vote = inData['vote']
@@ -234,9 +234,9 @@ def threadVote(cnx):
 #       {"user": "example@mail.ru", "thread": 4}
 @thread_api.route('/subscribe/', methods=['POST'])
 @connect_to_DB('threadSubscribe')
-def threadSubscribe(cnx):
+def threadSubscribe(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     user = inData['user']
     threadID = inData['thread']
@@ -251,9 +251,9 @@ def threadSubscribe(cnx):
 #       {"user": "example@mail.ru", "thread": 4}
 @thread_api.route('/unsubscribe/', methods=['POST'])
 @connect_to_DB('threadUnsubscribe')
-def threadUnsubscribe(cnx):
+def threadUnsubscribe(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     user = inData['user']
     threadID = inData['thread']
