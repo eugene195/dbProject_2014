@@ -13,9 +13,9 @@ user_api = Blueprint('user_api', __name__)
 #
 @user_api.route('/create/', methods=['POST'])
 @connect_to_DB('userCreate')
-def userCreate(cnx):
+def userCreate(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
 
     about = inData['about']
@@ -40,23 +40,23 @@ def userCreate(cnx):
 #
 @user_api.route('/details/', methods=['GET'])
 @connect_to_DB('userDetails')
-def userDetails(cnx):
-    cursor = cnx.cursor()
+def userDetails(cnx, cursor):
+    
     email = request.args.get('user')
     user = UserQueries.fetchByEmail(cursor, email)
     response = completeUser(user, cnx)
     return jsonify({'code': Codes.OK, 'response': response})
 
 
-# TODO SELECT BEFORE UPDATE
+
 #       /db/api/user/follow/
 #        {"follower": "example@mail.ru", "followee": "example3@mail.ru"}
 #
 @user_api.route('/follow/', methods=['POST'])
 @connect_to_DB('userFollow')
-def userFollow(cnx):
+def userFollow(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
 
     followee = inData['followee']
@@ -76,9 +76,9 @@ def userFollow(cnx):
 #
 @user_api.route('/listFollowers/', methods=['GET'])
 @connect_to_DB('userListFollowers')
-def userListFollowers(cnx):
+def userListFollowers(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     since_id = request.args.get('since_id')
     limit = request.args.get('limit')
     order = request.args.get('order')
@@ -103,9 +103,9 @@ def userListFollowers(cnx):
 #
 @user_api.route('/listFollowing/', methods=['GET'])
 @connect_to_DB('userListFollowee')
-def userListFollowee(cnx):
+def userListFollowee(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     since_id = request.args.get('since_id')
     limit = request.args.get('limit')
     order = request.args.get('order')
@@ -130,9 +130,9 @@ def userListFollowee(cnx):
 #
 @user_api.route('/listPosts/', methods=['GET'])
 @connect_to_DB('userListPosts')
-def userListPosts(cnx):
+def userListPosts(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     since = request.args.get('since')
     limit = request.args.get('limit')
     order = request.args.get('order')
@@ -146,14 +146,14 @@ def userListPosts(cnx):
 
     return jsonify({'code': Codes.OK, 'response': response})
 
-# TODO SELECT BEFORE UPDATE
+
 #       /db/api/user/unfollow/
 #       {"follower": "example@mail.ru", "followee": "example3@mail.ru"}
 @user_api.route('/unfollow/', methods=['POST'])
 @connect_to_DB('userUnfollow')
-def userUnfollow(cnx):
+def userUnfollow(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     followee = inData['followee']
     follower = inData['follower']
@@ -165,14 +165,14 @@ def userUnfollow(cnx):
 
     return jsonify({'code': Codes.OK, 'response': response})
 
-## TODO SELECT BEFORE UPDATE
+
 #       /db/api/user/updateProfile/
 #       {"about": "Wowowowow!!!", "user": "example@mail.ru", "name": "NewName2"}
 @user_api.route('/updateProfile/', methods=['POST'])
 @connect_to_DB('userUpdate')
-def userUpdate(cnx):
+def userUpdate(cnx, cursor):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
 
     about = inData['about']

@@ -14,9 +14,9 @@ post_api = Blueprint('post_api', __name__)
 #
 @post_api.route('/create/', methods=['POST'])
 @connect_to_DB('createPost')
-def createPost(cnx):
+def createPost(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
 
     parent = getValueOrZero(inData, 'parent')
@@ -35,9 +35,9 @@ def createPost(cnx):
     optionalParams = {'isApproved': isApproved, 'isHighlighted': isHighlighted, 'isEdited': isEdited,
                     'isSpam': isSpam, 'isDeleted': isDeleted, 'parent': parent}
 
-    PostQueries.create(cursor, requiredParams, optionalParams)
+    PostQueries.create(curs, requiredParams, optionalParams)
     cnx.commit()
-    postID = cursor.lastrowid
+    postID = curs.lastrowid
     response = {
         "date": date, "forum": forum, "id":postID,
         "isApproved": isApproved, "isDeleted": isDeleted, "isEdited": isEdited,
@@ -54,20 +54,20 @@ def createPost(cnx):
 
 @post_api.route('/details/', methods=['GET'])
 @connect_to_DB('postDetails')
-def postDetails(cnx):
+def postDetails(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     related = getListOrEmpty(request.args, 'related')
     postID = request.args.get('post')
     postID = int(postID)
-    post = PostQueries.fetchById(cursor, postID)
+    post = PostQueries.fetchById(curs, postID)
     response = completePost(post)
     if 'user' in related:
-        response.update({'user': completeUser(UserQueries.fetchByEmail(cursor, response['user']), cnx)})
+        response.update({'user': completeUser(UserQueries.fetchByEmail(curs, response['user']), cnx)})
     if 'thread' in related:
-        response.update({'thread': completeThread(ThreadQueries.fetchById(cursor, response['thread']))})
+        response.update({'thread': completeThread(ThreadQueries.fetchById(curs, response['thread']))})
     if 'forum' in related:
-        response.update({'forum': completeForum(ForumQueries.fetchBySlug(cursor, response['forum']))})
+        response.update({'forum': completeForum(ForumQueries.fetchBySlug(curs, response['forum']))})
     return jsonify({'code': Codes.OK, 'response': response})
 
 
@@ -77,9 +77,9 @@ def postDetails(cnx):
 
 @post_api.route('/list/', methods=['GET'])
 @connect_to_DB('postList')
-def postList(cnx):
+def postList(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     since = request.args.get('since')
     limit = request.args.get('limit')
     order = request.args.get('order')
@@ -91,9 +91,9 @@ def postList(cnx):
     if(short_name is None) and (thread is None):
         raise RequiredMissing('forum name or thread')
     if thread is not None:
-        posts = PostQueries.fetchThreadPosts(cursor, thread, since, limit, order, sort)
+        posts = PostQueries.fetchThreadPosts(curs, thread, since, limit, order, sort)
     else:
-        posts = PostQueries.fetchForumPosts(cursor, short_name, since, limit, order, sort)
+        posts = PostQueries.fetchForumPosts(curs, short_name, since, limit, order, sort)
     response = []
     for post in posts:
         response.append(completePost(post))
@@ -106,15 +106,15 @@ def postList(cnx):
 
 @post_api.route('/remove/', methods=['POST'])
 @connect_to_DB('postRemove')
-def postRemove(cnx):
+def postRemove(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     postId = inData['post']
-    post = PostQueries.fetchById(cursor, postId)
-    PostQueries.setDeleted(cursor, postId, True)
+    post = PostQueries.fetchById(curs, postId)
+    PostQueries.setDeleted(curs, postId, True)
     cnx.commit()
-    PostQueries.threadUpdatePostCount(cursor, post[15], ' - 1')
+    PostQueries.threadUpdatePostCount(curs, post[15], ' - 1')
     cnx.commit()
     response = {'post': postId}
     return jsonify({'code': Codes.OK, 'response': response})
@@ -127,49 +127,49 @@ def postRemove(cnx):
 
 @post_api.route('/restore/', methods=['POST'])
 @connect_to_DB('postRestore')
-def postRestore(cnx):
+def postRestore(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     postId = inData['post']
-    post = PostQueries.fetchById(cursor, postId)
-    PostQueries.setDeleted(cursor, postId, False)
+    post = PostQueries.fetchById(curs, postId)
+    PostQueries.setDeleted(curs, postId, False)
     cnx.commit()
-    PostQueries.threadUpdatePostCount(cursor, post[15], ' + 1')
+    PostQueries.threadUpdatePostCount(curs, post[15], ' + 1')
     cnx.commit()
     response = {'post': postId}
     return jsonify({'code': Codes.OK, 'response': response})
 
 
-#   TODO SELECT BEFORE UPDATE
+
 #           db/api/post/update/
 #           {"post": 3, "message": "my message 1"}
 
 @post_api.route('/update/', methods=['POST'])
 @connect_to_DB('postUpdate')
-def postUpdate(cnx):
+def postUpdate(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
     postId = inData['post']
     message = inData['message']
 
-    PostQueries.updMessage(cursor, postId, message)
+    PostQueries.updMessage(curs, postId, message)
     cnx.commit()
-    post = PostQueries.fetchById(cursor, postId)
+    post = PostQueries.fetchById(curs, postId)
     response = completePost(post)
     return jsonify({'code': Codes.OK, 'response': response})
 
 
-# TODO SELECT BEFORE UPDATE
+
 #       /db/api/post/vote/
 #       {"vote": -1, "post": 5}
 
 @post_api.route('/vote/', methods=['POST'])
 @connect_to_DB('postVote')
-def postVote(cnx):
+def postVote(cnx, curs):
 
-    cursor = cnx.cursor()
+    
     inData = request.get_json(force=True)
 
     postId = inData['post']
@@ -180,9 +180,9 @@ def postVote(cnx):
         liked = False
     else:
         raise BadFormat("vote")
-    PostQueries.updVote(cursor, postId, liked)
+    PostQueries.updVote(curs, postId, liked)
     cnx.commit()
-    post = PostQueries.fetchById(cursor, postId)
+    post = PostQueries.fetchById(curs, postId)
     response = completePost(post)
     return jsonify({'code': Codes.OK, 'response': response})
 

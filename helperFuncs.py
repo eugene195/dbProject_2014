@@ -7,27 +7,35 @@ from mysql.connector import errorcode
 from mysql.connector.errors import IntegrityError, OperationalError
 from mysql.connector.pooling import MySQLConnectionPool
 from functools import wraps
-
+from flaskext.mysql import MySQL
+from flask import Flask
 # Core setup settings
 # ----------------------------------------------
 PREFIX = "/db/api"
 
-DBConnection = {
-    'user': 'root',
-    'password': 'root',
-    'host': '127.0.0.1',
-    'database': 'dbISAM'
-}
 
-pool = MySQLConnectionPool(pool_name="pool", pool_size=32, **DBConnection)
+
+app = Flask(__name__)
+
+my = MySQL()
+app.config['MYSQL_DATABASE_USER'] = 'root'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
+app.config['MYSQL_DATABASE_DB'] = 'dbISAM'
+app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+my.init_app(app)
+conn = my.connect()
+
+# pool = MySQLConnectionPool(pool_name="pool", pool_size=32, **DBConnection)
+# connect = pool.get_connection()
 
 def connect_to_DB(name):
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            connect = pool.get_connection()
+            # connect = pool.get_connection()
+            cursor = conn.cursor()
             try:
-                ret = f(connect, *args, **kwargs)
+                ret = f(conn, cursor, *args, **kwargs)
             except DBNotFound as exc:
                 return jsonify({'code': Codes.NOT_FOUND, 'response': exc.message})
             except (RequiredMissing, KeyError) as exc:
@@ -39,7 +47,7 @@ def connect_to_DB(name):
             except Exception as exc:
                 return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
             finally:
-                connect.close()
+                cursor.close()
             return ret
         return wrapped
     return decorator
