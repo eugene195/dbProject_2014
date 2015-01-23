@@ -10,6 +10,7 @@ from functools import wraps
 from flaskext.mysql import MySQL
 from flask import Flask
 # Core setup settings
+import MySQLdb
 # ----------------------------------------------
 PREFIX = "/db/api"
 
@@ -17,13 +18,18 @@ PREFIX = "/db/api"
 
 app = Flask(__name__)
 
-my = MySQL()
-app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
-app.config['MYSQL_DATABASE_DB'] = 'dbISAM'
-app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-my.init_app(app)
-conn = my.connect()
+# my = MySQL()
+# app.config['MYSQL_DATABASE_USER'] = 'root'
+# app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
+# app.config['MYSQL_DATABASE_DB'] = 'dbProjectRecovery'
+# app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+# my.init_app(app)
+# conn = my.connect()
+
+conn = MySQLdb.connect(host="localhost",
+                    user="root",
+                    passwd="root",
+                    charset='utf8',)
 
 # pool = MySQLConnectionPool(pool_name="pool", pool_size=32, **DBConnection)
 # connect = pool.get_connection()
