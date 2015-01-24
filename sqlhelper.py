@@ -43,7 +43,8 @@ class UtilQueries:
         tableList = ['Forum', 'User', 'Thread', 'Post', 'Follow', 'Subscribe']
 
         for table in tableList:
-            query = '''DELETE %s.* FROM %s;''' % (table, table)
+            # query = '''DELETE %s.* FROM %s;''' % (table, table)
+            query = "TRUNCATE TABLE `%s`;" %table
             cursor.execute(query)
 
         query = "SET FOREIGN_KEY_CHECKS=1"
@@ -181,18 +182,35 @@ class ForumQueries:
 class PostQueries:
     @staticmethod
     def create(cursor, required, optional):
-        query = "INSERT INTO Post (date, thread, message, user, forum," \
-                "isApproved, isHighlighted, isEdited, isSpam, isDeleted, parent" \
-                ") VALUES ('%s', %d, '%s', '%s', '%s', " \
-                "%s, %s, %s, %s, %s, '%s');" % \
-                (
+        query = '''INSERT INTO Post (date, thread, message, user, forum,
+                isApproved, isHighlighted, isEdited, isSpam, isDeleted, parent
+                ) VALUES ('%s', %d, '%s', '%s', '%s',
+                %s, %s, %s, %s, %s, '%s');''' \
+                % (
                     required['date'], required['thread'],
                     required['message'], required['user'], required['forum'],
                     optional['isApproved'], optional['isHighlighted'], optional['isEdited'],
                     optional['isSpam'], optional['isDeleted'], optional['parent']
-                )
+                  )
+
         cursor.execute(query)
 
+    @staticmethod
+    def update_path(cursor, id, parent_id, isCorrect):
+        if isCorrect:
+            query = '''UPDATE Post SET path = id WHERE id = %s''' % (str(id))
+            cursor.execute(query)
+        else:
+            query = '''SELECT path, children FROM Post WHERE id = %d LIMIT 1''' % (parent_id)
+            cursor.execute(query)
+            parent = cursor.fetchone()
+            parent_path = parent[0]
+            childId = parent[1] + 1
+            childPath = parent_path + "." + str(childId)
+            query = '''UPDATE Post SET path = '%s' WHERE id = %d''' % (childPath, id)
+            cursor.execute(query)
+            query = '''UPDATE Post SET children = children + 1 WHERE id = %d''' % (parent_id)
+            cursor.execute(query)
 
     @staticmethod
     def fetchById(cursor, id):
@@ -246,7 +264,7 @@ class PostQueries:
 
 
     @staticmethod
-    def fetchThreadPosts(cursor, thread, since, limit, order, sort):
+    def     fetchThreadPosts(cursor, thread, since, limit, order, sort):
         since = getOrDefault(since, '2000-01-01 00:00:00')
         limit = getOrDefault(limit, '1000')
         sort = setSortType(sort)

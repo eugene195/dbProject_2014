@@ -19,7 +19,7 @@ def createPost(cnx, curs):
     
     inData = request.get_json(force=True)
 
-    parent = getValueOrZero(inData, 'parent')
+    parent = int(getValueOrZero(inData, 'parent'))
     isApproved = getValueOrFalse(inData, 'isApproved')
     isHighlighted = getValueOrFalse(inData, 'isHighlighted')
     isEdited = getValueOrFalse(inData, 'isEdited')
@@ -38,6 +38,14 @@ def createPost(cnx, curs):
     PostQueries.create(curs, requiredParams, optionalParams)
     cnx.commit()
     postID = curs.lastrowid
+
+    # TODO CREATE POST
+    # if (parent > 0):
+    #     PostQueries.update_path(curs, postID, parent, False)
+    # elif parent == 0:
+    #     PostQueries.update_path(curs, postID, postID, True)
+    # cnx.commit()
+
     response = {
         "date": date, "forum": forum, "id":postID,
         "isApproved": isApproved, "isDeleted": isDeleted, "isEdited": isEdited,
