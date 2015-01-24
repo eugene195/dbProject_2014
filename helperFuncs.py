@@ -30,7 +30,7 @@ conn = MySQLdb.connect(host="localhost",
                     user="root",
                     passwd="root",
                     charset='utf8',
-                    db="dbISAM",)
+                    db="nDB",)
 
 # pool = MySQLConnectionPool(pool_name="pool", pool_size=32, **DBConnection)
 # connect = pool.get_connection()
@@ -48,10 +48,10 @@ def connect_to_DB(name):
             except (RequiredMissing, KeyError) as exc:
                 return jsonify({'code': Codes.INVALID_QUERY, 'response': exc.message})
             except (OperationalError) as exc:
-                return jsonify({'code': Codes.INCORRECT_DB_QUERY, 'response': exc.msg})
-            except (IntegrityError) as exc:
-                return jsonify({'code': Codes.USER_EXISTS, 'response': exc.msg})
+                return jsonify({'code': Codes.INCORRECT_DB_QUERY, 'response': exc.__str__})
             except Exception as exc:
+                if exc[0] == 1062 :
+                    return jsonify({'code': Codes.USER_EXISTS, 'response': "User exists"})
                 return jsonify({'code': Codes.UNKNOWN_ERROR, 'response': exc.__str__()})
             finally:
                 cursor.close()

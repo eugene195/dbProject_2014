@@ -18,9 +18,11 @@ app.register_blueprint(thread_api, url_prefix = PREFIX + '/thread')
 @app.route(PREFIX+ "/clear/", methods=['POST'])
 @connect_to_DB('clear')
 def clear(connect, cursor):
+    print("Entered")
     inData = request.get_json(force=True)
     UtilQueries.clear(cursor)
     connect.commit()
+    print("Exited")
     return jsonify({'code': Codes.OK, 'response': "OK"})
 
 if __name__ == "__main__":
